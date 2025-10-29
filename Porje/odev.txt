@@ -1,0 +1,51 @@
+Proje Rehberi: UstaPlatform - Şehrin Uzmanlık Platformu
+Ders: Nesne Yönelimli Programlama (NYP) ve İleri C# Proje Adı: UstaPlatform 
+Amaç: Arcadia şehrindeki kayıp uzmanları (Tesisatçı, Elektrikçi, vb.) vatandaş talepleriyle eşleştiren, dinamik fiyatlama ve akıllı rota planlama yapabilen, Genişletilebilir ve Açık Uçlu bir yazılım platformu geliştirmek.
+1. Hikaye ve Problem Özeti
+Bağlam: Arcadia adlı orta ölçekli bir şehirde , belediyenin "Uzman Kayıt Sistemi" çökmüş durumda. Tesisatçı, elektrikçi, marangoz gibi bağımsız uzmanlara (usta) ulaşılamıyor ve iş planlama sistemi mevcut değil.
+İstenen Çözüm: Vatandaş bir talep açtığında, doğru uzmanı doğru zamanda bulan, rota planlayan, fiyat tahmini yapan ve takvime yerleştiren bir çözüme ihtiyaç var. Belediye, katı ve tek tip bir çözüm yerine, mahallelerin farklı kurallarına uyarlanabilir, genişletilebilir ve açık uçlu bir platform talep ediyor.
+2. Çözüm Mimarisi ve Temel Varlıklar
+Siz, UstaPlatform'u geliştiren bir ekipsiniz. Projenin kalbi, temel varlıkların (Domain Objects) tasarımı ve bu varlıklar etrafındaki iş akışıdır.
+Varlık (Sınıf Adı)	Açıklama	Ana Sorumluluk
+Usta (Master)	Hizmet veren uzman.	Uzmanlık alanı, yetenek, puan, yoğunluk. 
+Vatandaş (Citizen)	Hizmet talep eden kişi.	Talep oluşturma. 
+Talep (Request)	Vatandaşın açtığı iş talebi (Sızıntı tamiri, bilgisayar sorunu vb.).	İşi ve zamanını tanımlama. 
+İş Emri (WorkOrder)	Onaylanmış, ustaya atanmış ve planlanmış iş.	Fiyat, zaman, atanmış usta, rota durak bilgisi. 
+Fiyat Kuralı (IPricingRule)	Fiyatı dinamik olarak değiştiren kural (ör. Hafta sonu ücreti).	Fiyat hesaplama motoruna (Engine) takılabilir olması (Plug-in). 
+Rota (Route)	Bir uzmanın günlük ziyaret edeceği adreslerin sırası.	Adresleri tutan ve gezilebilir (IEnumerable) olan özel koleksiyon. 
+Çizelge (Schedule)	Ustaların iş emri takvimi.	Tarihe göre iş emirlerini listeleyen Dizinleyici (Indexer) içermesi. 
+E-Tablolar'a aktar
+Temel İş Akışı: Vatandaş Talep açar Uygulama, ustayı eşleştirir İş Emri oluşturulur Fiyat hesaplanır İş Emri, Uzmanın Çizelgesine/Rotasına yerleştirilir.
+3. Kritik Teknik ve Mimari Gereklilikler
+Projenin başarısı, aşağıdaki C# özelliklerini ve SOLID prensiplerini doğru uygulamanıza bağlıdır.
+A. SOLID Prensipleri (Tasarım Odak Noktası)
+1.	Açık/Kapalı Prensibi (OCP) - En Önemlisi: Yeni bir fiyat kuralı (Örn: Mahalle B için akşam tarifesi ) eklendiğinde, ana uygulama kodunu (UstaPlatform.App) yeniden derlemek yerine, sadece yeni bir sınıf veya DLL bırakılarak sisteme entegre edilebilmelidir.
+2.	Tek Sorumluluk Prensibi (SRP): Varlıklar, Fiyatlandırma Kuralları, Veri Depoları (Repository) ve Hesaplama Motoru (Engine) ayrı sınıfların sorumluluğunda olmalıdır.
+3.	Bağımlılıkların Tersine Çevrilmesi (DIP): Fiyat motoru gibi üst katmanlar, somut sınıflara değil, IPricingRule, IWorkOrderRepository gibi arayüzlere bağımlı olmalıdır.
+B. İleri C# Özellikleri
+1.	init-only Özelliği: ID (Kimlik), KayitZamani (Kayıt Zamanı) gibi alanlar, nesne oluşturulduktan sonra değiştirilemesin. Bu alanlar yalnızca başlatma (initialization) sırasında atanabilir olmalıdır.
+2.	Nesne ve Koleksiyon Başlatıcılar (Initializers): Domain nesneleri (new Usta { ... }) ve test verisi (new List<Talep> { new Talep { ... } }) oluşturulurken, okunaklılık için bu başlatıcılar yoğun olarak kullanılmalıdır.
+3.	Dizinleyici (Indexer): Schedule sınıfı içinde Schedule[DateOnly gün] yapısını kullanarak o güne ait iş emirleri listesine kolay erişim sağlanmalıdır.
+4.	Özel IEnumerable<T> Koleksiyonu: Route sınıfı, IEnumerable<(int X, int Y)> arayüzünü uygulamalı ve koleksiyon başlatıcıları desteklemek için public void Add(int X, int Y) metoduna sahip olmalıdır.
+5.	Statik Yardımcılar: Guard (Doğrulama), ParaFormatlayici (MoneyFormatter), KonumYardimcisi (GeoHelper) gibi genel hizmetler static sınıflar olarak tasarlanmalıdır.
+4. Plug-in (Eklenti) Mimarisi ve Dinamik Fiyatlama
+Bu, projenin en yaratıcı ve teknik derinlik gerektiren kısmıdır.
+Gereklilik: Yeni mahalle kuralları ve fiyatlandırmalar, ana uygulama kodu değişmeden, ayrı DLL'ler halinde eklenip çalıştırılabilmelidir.
+Tasarım:
+•	Bir IPricingRule arayüzü tanımlanır.
+•	Tüm fiyatlandırma kuralları (Örn: HaftasonuEkUcretiKurali, AcilCagriUcretiKurali ), bu arayüzü uygular.
+•	Bir FiyatlamaMotoru (PricingEngine) sınıfı, uygulama başladığında belirtilen klasördeki DLL'leri tarar, IPricingRule uygulayan sınıfları bulur ve bunları bir liste halinde çalıştırır.
+•	Fiyat hesaplaması, kuralların ardışık uygulandığı bir kompozisyon olmalıdır (Temel Ücret + Kural1 Kural2 Kural3 ...).
+Proje Teslim Formatı ve Beklenen Sonuç
+Öğrenci olarak projenizi aşağıdaki formatta teslim etmeniz beklenmektedir:
+1.	Çok Projeli Çözüm Dosyası (.sln): İsim alanlarına uygun olarak, ayrı projelerden oluşan bir çözüm yapısı (Örn: UstaPlatform.Domain, UstaPlatform.Pricing, UstaPlatform.Infrastructure, UstaPlatform.App).
+2.	README.md Belgesi (Zorunlu):
+o	Kurulum adımları ve çalıştırma bilgisi.
+o	Tasarım Kararları: Seçtiğiniz mimariyi (Katmanlama, SOLID uygulamaları) ve en kritik kısım olan Plug-in (Eklenti) mimarisinin nasıl çalıştığını açıklabiliniz.
+3.	Kısa Demo Akışı (Çıktı): Uygulamanın nasıl çalıştığını gösteren bir komut satırı (Console) çıktısı hazırlayın. Özellikle şu senaryo çalıştırılmalıdır:
+o	Senaryo: Uygulama çalışırken veya çalışmadan önce, yeni bir kural DLL'i (LoyaltyDiscountRule.dll gibi) projeye bırakılır. Uygulama çalıştırıldığında, bu yeni kuralın fiyat hesaplamasına otomatik olarak dahil olduğunu gösterin.
+4.	Opsiyonel Olan Testler (Ek Puan): PricingEngine ve Schedule dizinleyicisi senaryolarını kapsayan en az iki adet xUnit/NUnit testi.
+
+
+Tavsiye: Rehber, eşleştirme algoritması veya rota optimizasyonu gibi kısımları bilerek açık uçlu bırakmıştır. Bu kısımlarda basit çözümlerle başlamanız ve projeyi teslim formatındaki tüm zorunlu gereksinimlere odaklanmanız tavsiye edilir.
+Örneğin, eşleştirme için "en az iş yükü olan ustayı seç" gibi basit bir buluşsal yöntem uygulamak yeterli olacaktır.

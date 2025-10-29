@@ -1,0 +1,161 @@
+﻿# USTAPLATFORM PROJESİ - HOCA SORU BANKASI (Basitleştirilmiş)
+
+## GENEL PROJE SORULARI (1-10)
+
+1. Bu projenin amacı nedir?
+   - Arcadia şehrinde vatandaşların usta taleplerini karşılamak için eşleştirme, fiyatlama ve rota planlama yapan bir platformdur.
+
+2. Projede kaç tane katman var ve nelerdir?
+   - 5 katman: Domain (temel nesneler), Infrastructure (veri erişimi), Pricing (fiyat motoru), Pricing.Rules (kurallar), App (uygulama).
+
+3. Usta sınıfı neyi temsil eder?
+   - Hizmet veren uzmanı (tesisatçı, elektrikçi gibi) ve uzmanlık bilgilerini temsil eder.
+
+4. Talep sınıfı ne işe yarar?
+   - Vatandaşın açtığı iş talebini (su sızıntısı, elektrik arızası gibi) saklar.
+
+5. İşEmri ne zaman oluşturulur?
+   - Talep onaylandığında ve bir ustaya atandığında oluşturulur.
+
+6. Route (Rota) nedir?
+   - Bir uzmanın bir gün içinde gideceği adreslerin sırasını tutan koleksiyondur.
+
+7. Schedule (Çizelge) ne işe yarar?
+   - Ustaların hangi tarihte hangi işleri yapacağını gösteren takvimdir.
+
+8. Repository nedir?
+   - Veritabanı işlemlerini yapan sınıflardır (veri ekleme, getirme, güncelleme).
+
+9. Plugin nedir?
+   - Ana uygulamaya sonradan eklenebilen ek özelliklerdir (yeni fiyatlandırma kuralları gibi).
+
+10. Projede kaç adet demo senaryo var?
+    - 4 senaryo: Normal talep, Acil talep, Gece saati talebi, Sadık müşteri.
+
+## SOLID PRENSİPLERİ SORULARI (11-20)
+
+11. SRP (Tek Sorumluluk) ne demektir?
+    - Her sınıf sadece bir işten sorumlu olmalıdır (Usta sadece usta bilgisi tutar).
+
+12. OCP (Açık/Kapalı) ne demektir?
+    - Yeni özellik eklerken mevcut kodu değiştirmemek gerekir (plugin gibi).
+
+13. Projede OCP nasıl uygulanmış?
+    - Plugin mimarisi sayesinde yeni fiyat kuralları DLL olarak eklenebilir.
+
+14. DIP (Bağımlılığı Tersine Çevirme) ne demektir?
+    - Sınıflar somut sınıflara değil interface'lere bağımlı olmalıdır.
+
+15. Interface neden kullanılır?
+    - Esneklik sağlar, test edilebilirliği artırır ve bağımlılığı azaltır.
+
+16. Projede kaç interface var?
+    - 4 tane: IPricingRule, IUstaRepository, ITalepRepository, IWorkOrderRepository.
+
+17. LSP (Liskov) ne demektir?
+    - Bir interface'i implement eden tüm sınıflar birbirinin yerine kullanılabilmelidir.
+
+18. Repository Pattern neden kullanılır?
+    - Veri erişim kodunu business logic'ten ayırmak ve değiştirilebilir yapmak için.
+
+19. Static sınıflar ne işe yarar?
+    - Yardımcı işlevler için kullanılır (Guard, ParaFormatlayici, KonumYardimcisi).
+
+20. ISP (Interface Ayrımı) örneği nedir?
+    - Her repository kendi işine özel küçük interface'e sahiptir (tek bir büyük interface yerine).
+
+## C# ÖZELLİKLERİ SORULARI (21-35)
+
+21. init-only property nedir?
+    - Sadece nesne oluşturulurken değer atanabilen, sonradan değiştirilemez property'dir.
+
+22. init-only nerede kullanılmış?
+    - Usta.Id, Talep.Id, KayitZamani gibi değişmemesi gereken alanlarda.
+
+23. required keyword ne işe yarar?
+    - Nesne oluşturulurken o property'nin mutlaka değer almasını zorunlu kılar.
+
+24. Indexer ne demektir?
+    - Sınıfı dizi gibi kullanmayı sağlar (schedule[tarih] gibi).
+
+25. Schedule indexer nasıl kullanılır?
+    - schedule[DateOnly.FromDateTime(tarih)] yazarak o günün işlerini alırız.
+
+26. foreach ile Route nasıl kullanılır?
+    - Route IEnumerable olduğu için: foreach (var (x, y) in rota) yazabiliriz.
+
+27. Tuple nedir?
+    - Birden fazla değeri tek bir değişkende tutmaya yarar: (int X, int Y).
+
+28. Static class ne demektir?
+    - Nesne oluşturmadan doğrudan sınıf adıyla kullanılan sınıftır.
+
+29. Guard sınıfı ne işe yarar?
+    - Hatalı değerleri kontrol edip exception fırlatır (validation).
+
+30. ParaFormatlayici ne yapar?
+    - Sayıları para formatına çevirir (1000 → "1.000 TL").
+
+31. KonumYardimcisi ne yapar?
+    - Koordinat hesaplamaları yapar (mesafe hesaplama gibi).
+
+32. Lambda expression nedir?
+    - Kısa fonksiyon yazma şeklidir: .Where(u => u.Aktif).
+
+33. LINQ nedir?
+    - Koleksiyonlar üzerinde sorgulama yapmayı sağlar (Where, OrderBy, Select).
+
+34. Object initializer örneği nedir?
+    - new Usta { Ad = "Ali", Soyad = "Yılmaz" } şeklinde nesne oluşturma.
+
+35. Computed property örneği nedir?
+    - TamIsim => $"{Ad} {Soyad}" gibi hesaplanan property.
+
+## PLUGIN VE FİYATLANDIRMA SORULARI (36-45)
+
+36. Plugin mimarisi basit anlatımla nedir?
+    - Yeni özellikler DLL dosyası olarak eklenip uygulamaya otomatik yüklenir.
+
+37. Fiyatlandırma kuralı ne demektir?
+    - Fiyatı etkileyen kural (hafta sonu %50 zamlandırma gibi).
+
+38. Kaç tane varsayılan kural var?
+    - 4 tane: Temel fiyat, Hafta sonu, Gece saati, Acil çağrı.
+
+39. Yeni kural nasıl eklenir?
+    - IPricingRule implement eden sınıf yazılır, DLL'e derlenir, Plugins klasörüne konur.
+
+40. Kurallar hangi sırayla çalışır?
+    - Oncelik değerine göre (küçükten büyüğe: 1, 10, 15, 20...).
+
+41. TemelFiyatKurali ne yapar?
+    - Saat başı ücret × tahmini süre hesabı yapar.
+
+42. HaftasonuEkUcretiKurali ne zaman çalışır?
+    - Cumartesi veya Pazar günü ise %50 ek ücret ekler.
+
+43. AcilCagriUcretiKurali ne zaman çalışır?
+    - Talep acil ise %75 ek ücret ekler.
+
+44. GeceSaatiEkUcretiKurali ne zaman çalışır?
+    - Saat 18:00-08:00 arası ise %30 ek ücret ekler.
+
+45. LoyaltyDiscountRule ne yapar?
+    - Sadık müşterilere %10 indirim yapar (plugin örneği).
+
+## UYGULAMA AKIŞI SORULARI (46-50)
+
+46. Vatandaş talep açtığında ne olur?
+    - Sistem uygun usta bulur, fiyat hesaplar, iş emri oluşturur.
+
+47. Usta nasıl seçilir?
+    - Yoğunluğu az ve puanı yüksek olan usta seçilir.
+
+48. Rota nasıl oluşturulur?
+    - Usta'nın o gündeki tüm iş emirlerinin adresleri sırayla Route'a eklenir.
+
+49. Çizelge nasıl kullanılır?
+    - Indexer ile istenen tarihin işlerine ulaşılır: schedule[tarih].
+
+50. Proje başarıyla çalışıyor mu?
+    - Evet, 4 senaryo başarıyla çalışır ve tüm özellikler gösterilir.
